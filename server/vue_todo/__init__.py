@@ -4,7 +4,9 @@ from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
 from flask_cors import CORS
 
-app = Flask(__name__)
+app = Flask(__name__,
+            static_folder = "./dist/static",
+            template_folder = "./dist")
 app.config.update(
     SQLALCHEMY_DATABASE_URI='mysql://root@localhost/vue_todo',
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
