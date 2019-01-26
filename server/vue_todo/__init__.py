@@ -14,7 +14,7 @@ app.config.update(
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 ma = Marshmallow(app)
-CORS(app)
+cors = CORS(app)
 
 
 from . import views  # noqa

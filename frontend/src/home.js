@@ -40,7 +40,8 @@ export default {
       todos: todoStorage.fetch(),
       newTodo: '',
       editedTodo: null,
-      visibility: 'all'
+      visibility: 'all',
+      newListName: ''
     }
   },
   // watch todos change for localStorage persistence
@@ -96,6 +97,10 @@ export default {
       this.newTodo = ''
     },
 
+    addListTitle: function() {
+
+    },
+
     removeTodo: function (todo) {
       this.todos.splice(this.todos.indexOf(todo), 1)
     },
@@ -127,12 +132,21 @@ export default {
     // handle routing
     onHashChange: function () {
       var visibility = window.location.hash.replace(/#\/?/, '')
+
       if (filters[visibility]) {
         this.visibility = visibility
       } else {
         window.location.hash = ''
         this.visibility = 'all'
       }
+    },
+    editHandler: function () {
+      var t = $(this);
+      t.css("visibility", "hidden");
+      $(this).prev().attr("contenteditable", "true").focusout(function() {
+        $(this).removeAttr("contenteditable").off("focusout");
+        t.css("visibility", "visible");
+      });
     }
   },
   mounted() {
