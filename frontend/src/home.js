@@ -1,4 +1,5 @@
-// import axios from 'axios'
+import axios from 'axios'
+import { mapGetters, mapActions } from 'vuex'
 
 // localStorage persistence
 var STORAGE_KEY = 'todos-vuejs-2.0'
@@ -14,6 +15,10 @@ var todoStorage = {
   save: function (todos) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
   }
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // visibility filters
@@ -41,7 +46,8 @@ export default {
       newTodo: '',
       editedTodo: null,
       visibility: 'all',
-      newListName: ''
+      newListName: '',
+      loadListName: ''
     }
   },
   // watch todos change for localStorage persistence
@@ -57,6 +63,10 @@ export default {
   // computed properties
   // https://vuejs.org/guide/computed.html
   computed: {
+    ...mapGetters([
+      'todoLists',
+      'todoItems'
+    ]),
     filteredTodos: function () {
       return filters[this.visibility](this.todos)
     },
@@ -84,6 +94,21 @@ export default {
   // methods that implement data logic.
   // note there's no DOM manipulation here at all.
   methods: {
+    ...mapActions([
+      'createNewTodoList',
+      'getTodoList',
+      'deleteTodoList',
+      'saveTodoItem',
+      'addTodoItem',
+      'updateTodoItem',
+      'deleteTodoItem'
+    ]),
+    clearNew() {
+      this.newListName = ''
+    },
+    clearLoad() {
+      this.loadListName = ''
+    },
     addTodo: function () {
       var value = this.newTodo && this.newTodo.trim()
       if (!value) {
@@ -152,6 +177,10 @@ export default {
   mounted() {
     window.addEventListener('hashchange', this.onHashChange)
     this.onHashChange()
+
+  },
+  created() {
+    this.$store.dispatch('updateTodoLists')
   },
 
   // a custom directive to wait for the DOM to be updated

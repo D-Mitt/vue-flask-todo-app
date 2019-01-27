@@ -28,7 +28,7 @@ body {
 
 .todoapp {
 	background: #fff;
-	margin: 30px 0 40px 0;
+	margin: 20px 0 50px 0;
 	position: relative;
 	box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2),
 	            0 25px 50px 0 rgba(0, 0, 0, 0.1);
@@ -37,7 +37,90 @@ body {
 .footer {
 	color: #777;
 	padding: 10px 15px;
-	height: 40px;
+	height: 50px;
 	text-align: center;
 	border-top: 1px solid #e6e6e6;
+}
+
+.save-button {
+	color: rgba(47, 175, 47, 1);;
+	margin: 3px;
+	padding: 3px 7px;
+	text-decoration: none;
+	border: 1px solid rgba(47, 175, 47, 0.5);
+	border-radius: 3px;
+  width: 88px;
+}
+
+.save-button:hover {
+	border-color: rgba(47, 175, 47, 1);
+  background-color: rgba(47, 175, 47, 1);
+  color: rgba(255, 255, 255, 1);
+  font-weight: bold;
+}
+
+.delete-button {
+	color: rgba(175, 47, 47, 1);
+	margin: 3px;
+	padding: 3px 7px;
+	text-decoration: none;
+	border: 1px solid rgba(175, 47, 47, 0.5);
+	border-radius: 3px;
+  width: 88px;
+}
+
+.delete-button:hover {
+	border-color: rgba(175, 47, 47, 1);
+  background-color: rgba(175, 47, 47, 1);
+  color: rgba(255, 255, 255, 1);
+  font-weight: bold;
+}
+
+.clear-completed-button {
+	color: rgba(47, 47, 47, 1);
+	margin: 3px;
+	padding: 3px 7px;
+	text-decoration: none;
+	border: 1px solid rgba(47, 47, 47, 0.5);
+	border-radius: 3px;
+}
+
+.clear-completed-button:hover {
+	border-color: rgba(47, 47, 47, 1);
+  background-color: rgba(47, 47, 47, 1);
+  color: rgba(255, 255, 255, 1);
+  font-weight: bold;
+}
+
+.filters {
+	margin: 6px 0px 0px 90px;
+	padding: 0;
+	list-style: none;
+	position: absolute;
+	right: 0;
+	left: 0;
+}
+
+.clear-completed,
+html .clear-completed:active {
+  margin: 6px 0px;
+	float: right;
+	position: relative;
+	line-height: 20px;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.clear-completed:hover {
+	text-decoration: underline;
+}
+
+.todo-count {
+  margin: 6px 0px;
+	float: left;
+	text-align: left;
+}
+
+.todo-count strong {
+  font-weight: bold;
 }

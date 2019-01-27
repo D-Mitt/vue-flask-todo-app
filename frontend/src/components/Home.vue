@@ -3,15 +3,15 @@
     <div class="row">
       <h1 class="todo-app-title">Todos</h1>
     </div>
-    <form>
+    <form @submit.prevent="getTodoList(loadListName).then(clearLoad)" >
       <div class="form-group row justify-content-center">
         <div class="col-sm-3">
-          <input type="text" class="form-control" placeholder="Load a Todo list...">
+          <input v-model="loadListName" type="text" class="form-control" placeholder="Load a Todo list...">
         </div>
-        <button type="submit" class="btn btn-dark" :disabled="newListName === ''">Load</button>
+        <button type="submit" class="btn btn-dark" :disabled="loadListName === ''">Load</button>
       </div>
     </form>
-    <form>
+    <form @submit.prevent="createNewTodoList(newListName).then(clearNew)">
       <div class="form-group row justify-content-center">
         <div class="col-sm-3">
           <input v-model="newListName" type="text" class="form-control" placeholder="Todo list title...">
@@ -20,13 +20,13 @@
       </div>
     </form>
     <div class="row justify-content-center">
-      <div class="col-sm-5">
+      <div class="col-sm-6">
       <section class="todoapp">
         <nav>
           <div class="nav nav-tabs" id="nav-tab" role="tablist">
-            <div v-for="todolist in filteredTodos" :key="todolist.id">
+            <div v-for="todolist in todoLists" :key="todolist.id">
               <a class="nav-item nav-link active" :id="todolist.id + '-tab'" data-toggle="tab"
-                :href="'#' + todolist.id + + 'content'" role="tab" aria-controls="nav-home" aria-selected="true">{{todolist.title}}</a>
+                :href="'#' + todolist.id + + 'content'" role="tab" aria-controls="nav-home" aria-selected="true">{{todolist.name}}</a>
             </div>
           </div>
         </nav>
@@ -64,17 +64,30 @@
               </ul>
             </section>
             <footer class="footer" v-show="todos.length" v-cloak>
-              <span class="todo-count">
-                <strong>{{ remaining }}</strong> {{ remaining | pluralize }} left
-              </span>
-              <ul class="filters">
-                <li><a href="#/all" :class="{ selected: visibility == 'all' }">All</a></li>
-                <li><a href="#/active" :class="{ selected: visibility == 'active' }">Active</a></li>
-                <li><a href="#/completed" :class="{ selected: visibility == 'completed' }">Completed</a></li>
-              </ul>
-              <button class="clear-completed" @click="removeCompleted" v-show="todos.length > remaining">
-                Clear completed
-              </button>
+              <div class="row">
+                <div class="col">
+                  <span class="todo-count">
+                    <strong>{{ remaining }}</strong> {{ remaining | pluralize }}
+                  </span>
+                  <ul class="filters">
+                    <li><a href="#/all" :class="{ selected: visibility == 'all' }">All</a></li>
+                    <li><a href="#/active" :class="{ selected: visibility == 'active' }">Active</a></li>
+                    <li><a href="#/completed" :class="{ selected: visibility == 'completed' }">Completed</a></li>
+                  </ul>
+                </div>
+
+                <div class="col-md-7" align="right">
+                  <button class="clear-completed-button" @click="removeCompleted" v-show="todos.length > remaining">
+                    Clear Completed
+                  </button>
+                  <button type="button" class="save-button" @click="deleteTodoList()">
+                    Save List
+                  </button>
+                  <button type="button" class="delete-button" @click="deleteTodoList()">
+                    Delete List
+                  </button>
+                </div>
+              </div>
             </footer>
           <!-- </div> -->
         <!-- </div> -->
