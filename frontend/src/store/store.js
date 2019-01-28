@@ -9,7 +9,9 @@ Vue.use(VueAxios, axios)
 export const store = new Vuex.Store({
   state: {
     todoLists: [],
-    todoItems: []
+    todoItems: [],
+    allDone: false,
+    activeTodoList: {}
   },
   actions: {
     updateTodoLists ({ commit }) {
@@ -145,6 +147,9 @@ export const store = new Vuex.Store({
         .catch(error => {
           console.log(error)
         })
+    },
+    setActiveTodoList ({ commit }, todoList) {
+      commit('setActiveTodoList', todoList)
     }
   },
   mutations: {
@@ -166,10 +171,14 @@ export const store = new Vuex.Store({
     },
     deleteTodoItem (state, todoItem) {
       state.todoItems.splice(state.todoItems.indexOf(todoItem), 1)
+    },
+    setActiveTodoList (state, todoList) {
+      state.activeTodoList = todoList
     }
   },
   getters: {
     todoLists: state => state.todoLists,
-    todoItems: state => state.todoItems
+    todoItems: state => state.todoItems,
+    allDone: state => state.allDone
   }
 })
