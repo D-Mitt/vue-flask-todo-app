@@ -41,9 +41,7 @@ var filters = {
 export default {
   data () {
     return {
-      randomNumber: 0,
       todos: todoStorage.fetch(),
-      newTodo: '',
       editedTodo: null,
       visibility: 'all',
       newListName: '',
@@ -67,7 +65,10 @@ export default {
       'todoLists',
       'todoItems',
       'allDone',
-      'activeTodoList'
+      'activeTodoList',
+      'todoItems',
+      'newTodo',
+      'uid'
     ]),
     filteredTodos: function () {
       return filters[this.visibility](this.todos)
@@ -109,18 +110,6 @@ export default {
     },
     clearLoad() {
       this.loadListName = ''
-    },
-    addTodo: function () {
-      var value = this.newTodo && this.newTodo.trim()
-      if (!value) {
-        return
-      }
-      this.todos.push({
-        id: todoStorage.uid++,
-        title: value,
-        completed: false
-      })
-      this.newTodo = ''
     },
 
     addListTitle: function() {
