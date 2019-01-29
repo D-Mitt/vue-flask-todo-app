@@ -77,6 +77,7 @@ def delete_todo(pk):
 @app.route('/todo', methods=['POST'])
 def create_todo():
     json_data = request.get_json()
+    print(json_data)
     todo, errors = todo_schema.load(json_data)
     if errors:
         return jsonify(errors), 422

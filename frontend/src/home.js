@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions, mapState } from 'vuex'
 
 // localStorage persistence
 var STORAGE_KEY = 'todos-vuejs-2.0'
@@ -17,33 +17,12 @@ var todoStorage = {
   }
 }
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// visibility filters
-var filters = {
-  all: function (todos) {
-    return todos
-  },
-  active: function (todos) {
-    return todos.filter(function (todo) {
-      return !todo.completed
-    })
-  },
-  completed: function (todos) {
-    return todos.filter(function (todo) {
-      return todo.completed
-    })
-  }
-}
-
 export default {
   data () {
     return {
+      randomNumber: 0,
       todos: todoStorage.fetch(),
       editedTodo: null,
-      visibility: 'all',
       newListName: '',
       loadListName: ''
     }
@@ -67,17 +46,28 @@ export default {
       'allDone',
       'activeTodoList',
       'todoItems',
-      'newTodo',
-      'uid'
+      'uid',
+      'remaining'
     ]),
-    filteredTodos: function () {
-      return filters[this.visibility](this.todos)
+    ...mapState([
+      'newTodo',
+      'visibility',
+      'filteredTodos',
+      'activeTodoListAllItems',
+      'activeTodoListActiveItems',
+      'activeTodoListCompletedItems',
+      'todoListNames',
+      'listNames'
+    ]),
+    newTodo: {
+        get(){ return this.$store.getters.newTodo; },
+        set( value ){ this.$store.commit('setNewTodo', value );}
     },
-    remaining: function () {
-      return filters.active(this.todos).length
+    visibility: {
+        get(){ return this.$store.getters.visibility; },
+        set( value ){ this.$store.commit('setVisibility', value );}
     }
   },
-
   filters: {
     pluralize: function (n) {
       return n === 1 ? 'item' : 'items'
@@ -95,7 +85,8 @@ export default {
       'addTodoItem',
       'updateTodoItem',
       'deleteTodoItem',
-      'setActiveTodoList'
+      'setActiveTodoList',
+      'saveTodoList'
     ]),
     setAllComplete: function (value) {
       this.todos.forEach(function (todo) {
@@ -144,24 +135,19 @@ export default {
     removeCompleted: function () {
       this.todos = filters.active(this.todos)
     },
+    isVaildVisibilityFilter(visibility) {
+      return visibility === 'all' || visibility === 'active' || visibility === 'completed'
+    },
     // handle routing
     onHashChange: function () {
       var visibility = window.location.hash.replace(/#\/?/, '')
 
-      if (filters[visibility]) {
+      if (this.isVaildVisibilityFilter(visibility)) {
         this.visibility = visibility
       } else {
         window.location.hash = ''
         this.visibility = 'all'
       }
-    },
-    editHandler: function () {
-      var t = $(this);
-      t.css("visibility", "hidden");
-      $(this).prev().attr("contenteditable", "true").focusout(function() {
-        $(this).removeAttr("contenteditable").off("focusout");
-        t.css("visibility", "visible");
-      });
     }
   },
   mounted() {

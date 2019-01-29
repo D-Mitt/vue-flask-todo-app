@@ -6,7 +6,11 @@
     <form @submit.prevent="getTodoList(loadListName).then(clearLoad)" >
       <div class="form-group row justify-content-center">
         <div class="col-sm-3">
-          <input v-model="loadListName" type="text" class="form-control" placeholder="Load a Todo list...">
+          <vue-bootstrap-typeahead
+            v-model="loadListName"
+            placeholder="Load a Todo list..."
+            :data="listNames"
+          />
         </div>
         <button type="submit" class="btn btn-dark" :disabled="loadListName === ''">Load</button>
       </div>
@@ -26,14 +30,14 @@
           <div class="nav nav-tabs" id="nav-tab" role="tablist">
             <div v-for="todolist in todoLists" :key="todolist.id">
               <a :class="{ active: todolist === activeTodoList }" class="nav-item nav-link" :id="todolist.id + '-tab'" data-toggle="tab"
-                :href="'#' + todolist.id + 'content'" role="tab" aria-controls="nav-home" aria-selected="true">{{todolist.name}}</a>
+                :href="'#' + todolist.id + 'content'" role="tab" aria-controls="nav-home"
+                @click="setActiveTodoList(todolist)" aria-selected="true">{{todolist.name}}</a>
             </div>
           </div>
         </nav>
-        <!-- <div class="tab-content" id="nav-tabContent">
-          <div v-for="todolist in filteredTodos" class="tab-pane fade show active" :key="todolist.id"
-            :id="todolist.id + + 'content'" role="tabpanel" :aria-labelledby="todolist.id + '-tab'"> -->
-
+        <div class="tab-content" id="nav-tabContent">
+          <div v-for="todolist in todoLists" :class="{ active: todolist === activeTodoList }" class="tab-pane fade show" :key="todolist.id"
+            :id="todolist.id + + 'content'" role="tabpanel" :aria-labelledby="todolist.id + '-tab'">
             <div class="row">
               <div class="col">
                 <ul class="list-group">
@@ -48,12 +52,12 @@
                             autofocus autocomplete="on"
                             placeholder="What needs to be done?"
                             v-model="newTodo"
-                            @keyup.enter="addTodo">
+                            @keyup.enter="addTodoItem()">
                         </div>
                     </div>
                   </li>
                   <li v-for="todo in filteredTodos"
-                    v-show="todos.length" v-cloak
+                    v-show="filteredTodos.length" v-cloak
                     class="list-group-item todo"
                     :key="todo.id"
                     :class="{ completed: todo.completed, editing: todo == editedTodo }">
@@ -84,7 +88,7 @@
                 </ul>
               </div>
             </div>
-            <footer class="footer" v-show="todos.length" v-cloak>
+            <footer class="footer" v-show="filteredTodos.length" v-cloak>
               <div class="row">
                 <div class="col">
                   <span class="todo-count">
@@ -98,10 +102,10 @@
                 </div>
 
                 <div class="col-md-7" align="right">
-                  <button class="clear-completed-button" @click="removeCompleted" v-show="todos.length > remaining">
+                  <button class="clear-completed-button" @click="removeCompleted" v-show="filteredTodos.length > remaining">
                     Clear Completed
                   </button>
-                  <button type="button" class="save-button" @click="deleteTodoList()">
+                  <button type="button" class="save-button" @click="saveTodoList()">
                     Save List
                   </button>
                   <button type="button" class="delete-button" @click="deleteTodoList()">
@@ -110,8 +114,8 @@
                 </div>
               </div>
             </footer>
-          <!-- </div>
-        </div> -->
+          </div>
+        </div>
       </section>
     </div>
   </div>
