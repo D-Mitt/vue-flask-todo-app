@@ -1,49 +1,19 @@
 import axios from 'axios'
 import { mapGetters, mapActions, mapState } from 'vuex'
 
-// localStorage persistence
-var STORAGE_KEY = 'todos-vuejs-2.0'
-var todoStorage = {
-  fetch: function () {
-    var todos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
-    todos.forEach(function (todo, index) {
-      todo.id = index
-    })
-    todoStorage.uid = todos.length
-    return todos
-  },
-  save: function (todos) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
-  }
-}
-
 export default {
   data () {
     return {
-      randomNumber: 0,
-      todos: todoStorage.fetch(),
-      editedTodo: null,
       newListName: '',
       loadListName: ''
     }
   },
-  // watch todos change for localStorage persistence
-  watch: {
-    todos: {
-      handler: function (todos) {
-        todoStorage.save(todos)
-      },
-      deep: true
-    }
-  },
-
   // computed properties
   // https://vuejs.org/guide/computed.html
   computed: {
     ...mapGetters([
       'todoLists',
       'todoItems',
-      'allDone',
       'activeTodoList',
       'todoItems',
       'uid',
@@ -57,7 +27,9 @@ export default {
       'activeTodoListActiveItems',
       'activeTodoListCompletedItems',
       'todoListNames',
-      'listNames'
+      'listNames',
+      'editedTodo',
+      'todoEditCache'
     ]),
     newTodo: {
         get(){ return this.$store.getters.newTodo; },
@@ -66,7 +38,8 @@ export default {
     visibility: {
         get(){ return this.$store.getters.visibility; },
         set( value ){ this.$store.commit('setVisibility', value );}
-    }
+    },
+
   },
   filters: {
     pluralize: function (n) {
@@ -86,54 +59,22 @@ export default {
       'updateTodoItem',
       'deleteTodoItem',
       'setActiveTodoList',
-      'saveTodoList'
+      'saveTodoList',
+      'editTodo',
+      'doneEdit',
+      'cancelEdit',
+      'recalculateTodoLists',
+      'setAllComplete',
+      'removeCompleted',
+      'toggleCompleted',
+      'deleteTodoItemIfSaved'
     ]),
-    setAllComplete: function (value) {
-      this.todos.forEach(function (todo) {
-        todo.completed = value
-      })
-    },
-    toggleCompleted: function(todo) {
-      todo.completed = !todo.completed
-    },
     clearNew() {
       this.newListName = ''
     },
+    // Required to update autocomplete after loading
     clearLoad() {
-      this.loadListName = ''
-    },
-
-    addListTitle: function() {
-
-    },
-
-    removeTodo: function (todo) {
-      this.todos.splice(this.todos.indexOf(todo), 1)
-    },
-
-    editTodo: function (todo) {
-      this.beforeEditCache = todo.title
-      this.editedTodo = todo
-    },
-
-    doneEdit: function (todo) {
-      if (!this.editedTodo) {
-        return
-      }
-      this.editedTodo = null
-      todo.title = todo.title.trim()
-      if (!todo.title) {
-        this.removeTodo(todo)
-      }
-    },
-
-    cancelEdit: function (todo) {
-      this.editedTodo = null
-      todo.title = this.beforeEditCache
-    },
-
-    removeCompleted: function () {
-      this.todos = filters.active(this.todos)
+      this.$refs.listAutocomplete.inputValue = ''
     },
     isVaildVisibilityFilter(visibility) {
       return visibility === 'all' || visibility === 'active' || visibility === 'completed'

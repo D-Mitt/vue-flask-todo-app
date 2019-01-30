@@ -21,7 +21,9 @@ export const store = new Vuex.Store({
     activeTodoListAllItems: [],
     activeTodoListActiveItems: [],
     activeTodoListCompletedItems: [],
-    filteredTodos: []
+    filteredTodos: [],
+    editedTodo: {},
+    todoEditCache: ''
   },
   actions: {
     updateTodoLists (context) {
@@ -32,7 +34,7 @@ export const store = new Vuex.Store({
           }
         })
         .then(data => {
-          context.commit('updateTodoLists', data)
+          // context.commit('updateTodoLists', data)
           context.dispatch('setUID', data)
           context.dispatch('getTodoListNames', data)
           // context.dispatch('getAllTodoListItems', data)
@@ -78,8 +80,8 @@ export const store = new Vuex.Store({
           console.log(error)
         })
     },
-    deleteTodoList ({ commit }, todoList) {
-      axios.delete(`http://localhost:5000/todo_lists/${todoList.id}`)
+    deleteTodoList ({ commit }) {
+      axios.delete(`http://localhost:5000/todo_lists/${this.state.activeTodoList.id}`)
         .then(response => {
           if (response.status === 204) {
             // TODO: show success message
@@ -87,13 +89,14 @@ export const store = new Vuex.Store({
           }
         })
         .then(resp => {
-          commit('deleteTodoList', todoList)
+          commit('deleteTodoList', this.state.activeTodoList)
+          commit('setActiveTodoList', null)
         })
         .catch(error => {
           console.log(error)
         })
     },
-    saveTodoItem ({ commit }, postMsg) {
+    saveTodoItem (context, postMsg) {
       axios.post('http://localhost:5000/todo', postMsg)
         .then(response => {
           if (response.status === 201) {
@@ -101,7 +104,8 @@ export const store = new Vuex.Store({
           }
         })
         .then(data => {
-          commit('saveTodoItem', data)
+          context.commit('saveTodoItem', data)
+          context.dispatch('recalculateTodoLists')
         })
         .catch(error => {
           console.log(error)
@@ -131,9 +135,9 @@ export const store = new Vuex.Store({
           console.log(error)
         })
     },
-    updateTodoItem ({ commit }, todoItemName) {
+    updateTodoItem (context, patch) {
       var todoItem = _.find(this.state.todoItems, item => {
-        return item.name === todoItemName
+        return item.title === patch.title
       })
       axios.patch(`http://localhost:5000/todo/${todoItem.id}`, {
         title: todoItem.title,
@@ -145,22 +149,22 @@ export const store = new Vuex.Store({
           }
         })
         .then(data => {
-          commit('patchTodoItem', data)
+          context.commit('saveTodoItem', data)
+          context.dispatch('recalculateTodoLists')
         })
         .catch(error => {
           console.log(error)
         })
     },
-    deleteTodoItem ({ commit }, todo) {
+    deleteTodoItem (context, todo) {
       axios.delete(`http://localhost:5000/todo/${todo.id}`)
         .then(response => {
           if (response.status === 204) {
-            // TODO: show success message
             return response
           }
         })
         .then(resp => {
-          commit('deleteTodoItem', todo)
+          context.dispatch('removeTodo', todo)
         })
         .catch(error => {
           console.log(error)
@@ -174,11 +178,9 @@ export const store = new Vuex.Store({
       commit('setFilteredTodos')
     },
     setExistingTodoItem (context, existingTodoItem) {
+      existingTodoItem = {...existingTodoItem, isNew: false, isUpdated: false}
       context.commit('setExistingTodoItem', existingTodoItem)
-      context.commit('setActiveTodoListAllItems')
-      context.commit('setActiveTodoListActiveItems')
-      context.commit('setActiveTodoListCompletedItems')
-      context.commit('setFilteredTodos')
+      context.dispatch('recalculateTodoLists')
     },
     addTodoItem (context) {
       var value = context.getters.newTodo && context.getters.newTodo.trim()
@@ -188,11 +190,14 @@ export const store = new Vuex.Store({
       }
       context.commit('incrementUID')
       context.commit('addNewTodoItem', value)
+      context.commit('resetNewTodo', value)
+      context.dispatch('recalculateTodoLists')
+    },
+    recalculateTodoLists (context) {
       context.commit('setActiveTodoListAllItems')
       context.commit('setActiveTodoListActiveItems')
       context.commit('setActiveTodoListCompletedItems')
       context.commit('setFilteredTodos')
-      context.commit('resetNewTodo', value)
     },
     setUID ({ commit }, todoLists) {
       var highestUID = 0
@@ -209,8 +214,7 @@ export const store = new Vuex.Store({
       _.forEach(this.state.activeTodoListAllItems, (item) => {
         if (item.isNew) {
           context.dispatch('saveTodoItem', {title: item.title, todo_list_id: this.state.activeTodoList.id})
-        }
-        if (item.isUpdated) {
+        } else if (item.isUpdated) {
           context.dispatch('updateTodoItem', {title: item.title, todo_list_id: this.state.activeTodoList.id})
         }
       })
@@ -221,6 +225,60 @@ export const store = new Vuex.Store({
         names.push({id: todo.id, name: todo.name})
       })
       context.commit('updateTodoListNames', names)
+    },
+    editTodo (context, todo) {
+      context.commit('setTodoEditCache', todo.title)
+      context.commit('setEditedTodo', todo)
+    },
+    doneEdit (context, todo) {
+      if (this.state.editedTodo) {
+        context.commit('setEditedTodo', null)
+        todo.title = todo.title.trim()
+        context.commit('setUpdatedFlag', todo)
+        if (!todo.title) {
+          context.dispatch('removeTodo', todo)
+        }
+      }
+    },
+    removeTodo (context, todo) {
+      context.commit('deleteTodoItem', todo)
+      context.commit('deleteTodoItemFromTodoList', todo)
+      context.commit('deleteTodoItemFromActiveList', todo)
+      context.dispatch('recalculateTodoLists')
+    },
+    cancelEdit (context, todo) {
+      context.commit('setEditedTodo', null)
+      todo.title = this.state.todoEditCache
+      context.commit('setTodoEditCache', '')
+    },
+    setAllComplete (context, setToCompleted) {
+      context.commit('setAllCompleted', setToCompleted)
+      context.dispatch('recalculateTodoLists')
+    },
+    toggleCompleted (context, todo) {
+      context.commit('toggleCompleted', todo)
+      context.dispatch('recalculateTodoLists')
+    },
+    removeCompleted (context) {
+      _.forEach(this.state.activeTodoListCompletedItems, (completedItem) => {
+        var todo = _.find(this.state.todoItems, (todoItem) => {
+          return todoItem.id === completedItem.id
+        })
+        context.dispatch('deleteTodoItemIfSaved', todo)
+      })
+    },
+    deleteTodoItemIfSaved(context, todo) {
+      if (todo) {
+        // Only make delete call to backend if it has been saved at some point
+        if (!todo.isNew) {
+          context.dispatch('deleteTodoItem', todo)
+        } else {
+          context.dispatch('removeTodo', todo)
+        }
+
+      } else {
+        console.log('todo item', todoItem.title,'not found!')
+      }
     }
   },
   mutations: {
@@ -254,15 +312,18 @@ export const store = new Vuex.Store({
       }
     },
     deleteTodoList (state, todoList) {
-      state.todoLists.splice(state.todoLists.indexOf(todoList), 1)
+      _.remove(state.todoLists, (list) => {
+        return list.id === todoList.id
+      })
     },
     saveTodoItem (state, todoItem) {
-      state.todoItems.push(todoItem)
-    },
-    patchTodoItem (state, todoItem) {
-      if (_.includes(state.todoItems, todoItem)) {
-        var index = state.todoItems.indexOf(todoItem)
-        state.todoItems[index] = {...todoItem, isUpdated: false}
+      var index = _.findIndex(state.todoItems, (item) => {
+        // Doing by title rathe rather than id because an item may not have a valid id yet
+        return item.title === todoItem.title
+      })
+
+      if (index !== -1) {
+        state.todoItems[index] = {...todoItem, isNew: false, isUpdated: false}
       }
     },
     setActiveTodoListAllItems: (state) => {
@@ -309,10 +370,25 @@ export const store = new Vuex.Store({
         state.filteredTodos = state.activeTodoListCompletedItems
       }
     },
-    updateTodoItem (state, todoItem) {
-    },
     deleteTodoItem (state, todoItem) {
-      state.todoItems.splice(state.todoItems.indexOf(todoItem), 1)
+      _.remove(state.todoItems, (todo) => {
+        return todo.id === todoItem.id
+      })
+    },
+    deleteTodoItemFromTodoList (state, todoItem) {
+      var todoList = _.find(state.todoLists, (todoList) => {
+        return todoItem.todo_list_id === todoList.id
+      })
+      if (todoList) {
+        _.remove(todoList.todos, (id) => {
+          return id === todoItem.id
+        })
+      }
+    },
+    deleteTodoItemFromActiveList (state, todoItem) {
+      _.remove(state.activeTodoList.todos, (id) => {
+        return id === todoItem.id
+      })
     },
     setActiveTodoList (state, todoList) {
       state.activeTodoList = todoList
@@ -352,6 +428,30 @@ export const store = new Vuex.Store({
     },
     setVisibility (state, value) {
       state.visibility = value
+    },
+    setTodoEditCache (state, text) {
+      state.todoEditCache = text
+    },
+    setEditedTodo (state, todo) {
+      state.editedTodo = todo
+    },
+    setAllCompleted (state, setToCompleted) {
+      _.forEach(state.activeTodoListAllItems, (activeTodoItem) => {
+        var todoItem = _.find(state.todoItems, (todo) => {
+          return activeTodoItem.id === todo.id
+        })
+        if (todoItem) {
+          todoItem.completed = setToCompleted
+          todoItem.isUpdated = true
+        }
+      })
+    },
+    toggleCompleted (state, todo) {
+      todo.completed = !todo.completed
+      todo.isUpdated = true
+    },
+    setUpdatedFlag (state, todo) {
+      todo.isUpdated = true
     }
   },
   getters: {

@@ -7,6 +7,7 @@
       <div class="form-group row justify-content-center">
         <div class="col-sm-3">
           <vue-bootstrap-typeahead
+            ref="listAutocomplete"
             v-model="loadListName"
             placeholder="Load a Todo list..."
             :data="listNames"
@@ -81,7 +82,7 @@
                       </div>
                       <div class="col-1" align="right">
                         <span class="fas fa-times-circle fa" style="color: DarkRed; cursor: pointer;"
-                          @click="removeTodo(todo)"></span>
+                          @click="deleteTodoItemIfSaved(todo)"></span>
                       </div>
                     </div>
                   </li>
@@ -102,7 +103,7 @@
                 </div>
 
                 <div class="col-md-7" align="right">
-                  <button class="clear-completed-button" @click="removeCompleted" v-show="filteredTodos.length > remaining">
+                  <button class="clear-completed-button" @click="removeCompleted()" v-show="filteredTodos.length > remaining">
                     Clear Completed
                   </button>
                   <button type="button" class="save-button" @click="saveTodoList()">
