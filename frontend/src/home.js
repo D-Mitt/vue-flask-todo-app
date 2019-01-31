@@ -14,7 +14,6 @@ export default {
     ...mapGetters([
       'todoLists',
       'todoItems',
-      'todoItems',
       'uid',
       'remaining'
     ]),
@@ -38,7 +37,6 @@ export default {
     visibility: {
         get(){ return this.$store.getters.visibility; },
         set( value ){
-          console.log(value)
           this.$store.dispatch('setVisibility', value )
         }
     },
@@ -82,9 +80,6 @@ export default {
     },
     undoState () {
       this.undo()
-      this.$store.commit('setActiveTodoList', {})
-      this.$store.commit('setActiveTodoList', this.activeTodoList)
-      this.$store.dispatch('recalculateTodoListsWithoutSavingState')
     },
     isVaildVisibilityFilter(visibility) {
       return visibility === 'all' || visibility === 'active' || visibility === 'completed'

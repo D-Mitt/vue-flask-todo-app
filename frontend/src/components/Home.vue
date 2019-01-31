@@ -12,6 +12,8 @@
             placeholder="Load a Todo list..."
             :data="listNames"
           />
+          <div id="NotFound">
+          </div>
         </div>
         <button type="submit" class="btn btn-dark" :disabled="loadListName === ''">Load</button>
       </div>
@@ -89,7 +91,7 @@
                 </ul>
               </div>
             </div>
-            <footer class="footer" v-show="filteredTodos.length" v-cloak>
+            <footer class="footer">
               <div class="row">
                 <div class="col">
                   <span class="todo-count">

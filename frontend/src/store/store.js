@@ -3,7 +3,6 @@ import Vuex from 'vuex'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
 import _ from 'lodash'
-import mutNames from './enums/mutationNames.js'
 
 Vue.use(Vuex)
 Vue.use(VueAxios, axios)
@@ -43,21 +42,27 @@ export const store = new Vuex.Store({
         })
     },
     createNewTodoList (context, newListName) {
-      axios.post('http://localhost:5000/todo_lists', {
-        name: newListName
-      })
-        .then(response => {
-          if (response.status === 201) {
-            return response.data
-          }
+      if (_.find(this.state.todoLists, todoList => {
+        return todoList.name === newListName
+      })) {
+        console.log('That name already exists for a todo list, please choose another.')
+      } else {
+        axios.post('http://localhost:5000/todo_lists', {
+          name: newListName
         })
-        .then(data => {
-          context.commit('addTodoList', data)
-          context.dispatch('setActiveTodoList', data)
-        })
-        .catch(error => {
-          console.log(error)
-        })
+          .then(response => {
+            if (response.status === 201) {
+              return response.data
+            }
+          })
+          .then(data => {
+            context.commit('addTodoList', data)
+            context.dispatch('setActiveTodoList', data)
+          })
+          .catch(error => {
+            console.log(error)
+          })
+      }
     },
     getTodoList (context, todoListName) {
       var todoList = _.find(this.state.todoListNames, (listName) => {
@@ -193,7 +198,7 @@ export const store = new Vuex.Store({
       context.commit('setActiveTodoListActiveItems')
       context.commit('setActiveTodoListCompletedItems')
       context.commit('setFilteredTodos')
-      context.commit(mutNames.SAVE_STATE)
+      context.commit('saveState')
     },
     recalculateTodoListsWithoutSavingState (context) {
       context.commit('setActiveTodoListAllItems')
@@ -277,9 +282,8 @@ export const store = new Vuex.Store({
         } else {
           context.dispatch('removeTodo', todo)
         }
-
       } else {
-        console.log('todo item', todoItem.title,'not found!')
+        console.log('todo item', todo.title, 'not found!')
       }
     },
     setVisibility (context, visibility) {
@@ -313,7 +317,7 @@ export const store = new Vuex.Store({
     },
     saveTodoItem (state, todoItem) {
       var index = _.findIndex(state.todoItems, (item) => {
-        // Doing by title rathe rather than id because an item may not have a valid id yet
+        // Doing by title rather than id because an item may not have a valid id yet
         return item.title === todoItem.title
       })
 
@@ -448,8 +452,8 @@ export const store = new Vuex.Store({
     setUpdatedFlag (state, todo) {
       todo.isUpdated = true
     },
-    SAVE_STATE (state) {
-      //plugin is recording state
+    saveState (state) {
+      // plugin is recording state
     }
   },
   getters: {

@@ -8,7 +8,7 @@ export default {
       },
       created () {
         this.$store.subscribe(mutation => {
-          if (mutation.type === 'SAVE_STATE') {
+          if (mutation.type === 'SaveState') {
             this.undoStates.push(JSON.stringify(this.$store.state))
           }
         })
