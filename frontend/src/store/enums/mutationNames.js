@@ -1,5 +1,6 @@
 const mutationNames = {
-  UPDATE_TODO_LIST_NAMES: 'updateTodoListNames',
+  UPDATE_TODO_LIST_NAMES: 'UPDATE_TODO_LIST_NAMES',
+  ADD_TODO_LIST_NAMES: 'ADD_TODO_LIST_NAMES',
   // addTodoList
   // deleteTodoList
   // setActiveTodoList
@@ -20,6 +21,7 @@ const mutationNames = {
   // toggleCompleted
   // setUpdatedFlag
   // saveState
+  SAVE_STATE: 'SAVE_STATE'
 }
 
   export default mutationNames

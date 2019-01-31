@@ -25,7 +25,7 @@
       </div>
     </form>
     <div class="row justify-content-center">
-      <div class="col-sm-8">
+      <div class="col-sm-8 offset-sm-2">
       <section class="todoapp">
         <nav>
           <div class="nav nav-tabs" id="nav-tab" role="tablist">
@@ -118,6 +118,11 @@
           </div>
         </div>
       </section>
+    </div>
+    <div class="col-sm-2" align="left">
+      <button type="button" class="undo-button" @click="undoState()" v-show="canUndo">
+        Undo
+      </button>
     </div>
   </div>
   <div class="row">

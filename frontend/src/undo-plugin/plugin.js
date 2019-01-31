@@ -8,7 +8,6 @@ export default {
       },
       created () {
         this.$store.subscribe(mutation => {
-          console.log(mutation.type)
           if (mutation.type === 'SAVE_STATE') {
             this.undoStates.push(JSON.stringify(this.$store.state))
           }
@@ -23,7 +22,9 @@ export default {
       },
       computed: {
         canUndo () {
-          return this.undoStates.length > 0
+          // Dont user go back before first save as todo_list information will
+          // be removed and a page refresh will need to occur.
+          return this.undoStates.length > 1
         }
       }
     })

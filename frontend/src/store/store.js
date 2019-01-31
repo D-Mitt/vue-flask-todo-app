@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
 import _ from 'lodash'
+import mutNames from './enums/mutationNames.js'
 
 Vue.use(Vuex)
 Vue.use(VueAxios, axios)
@@ -34,10 +35,8 @@ export const store = new Vuex.Store({
           }
         })
         .then(data => {
-          // context.commit('updateTodoLists', data)
           context.dispatch('setUID', data)
           context.dispatch('getTodoListNames', data)
-          // context.dispatch('getAllTodoListItems', data)
         })
         .catch(error => {
           console.log(error)
@@ -80,17 +79,16 @@ export const store = new Vuex.Store({
           console.log(error)
         })
     },
-    deleteTodoList ({ commit }) {
+    deleteTodoList (context) {
       axios.delete(`http://localhost:5000/todo_lists/${this.state.activeTodoList.id}`)
         .then(response => {
           if (response.status === 204) {
-            // TODO: show success message
             return response
           }
         })
         .then(resp => {
-          commit('deleteTodoList', this.state.activeTodoList)
-          commit('setActiveTodoList', null)
+          context.commit('deleteTodoList', this.state.activeTodoList)
+          context.dispatch('setActiveTodoList', {})
         })
         .catch(error => {
           console.log(error)
@@ -170,17 +168,14 @@ export const store = new Vuex.Store({
           console.log(error)
         })
     },
-    setActiveTodoList ({ commit }, todoList) {
-      commit('setActiveTodoList', todoList)
-      commit('setActiveTodoListAllItems')
-      commit('setActiveTodoListActiveItems')
-      commit('setActiveTodoListCompletedItems')
-      commit('setFilteredTodos')
+    setActiveTodoList (context, todoList) {
+      context.commit('setActiveTodoList', todoList)
+      context.dispatch('recalculateTodoLists')
     },
     setExistingTodoItem (context, existingTodoItem) {
       existingTodoItem = {...existingTodoItem, isNew: false, isUpdated: false}
       context.commit('setExistingTodoItem', existingTodoItem)
-      context.dispatch('recalculateTodoLists')
+      context.dispatch('recalculateTodoListsWithoutSavingState')
     },
     addTodoItem (context) {
       var value = context.getters.newTodo && context.getters.newTodo.trim()
@@ -194,6 +189,13 @@ export const store = new Vuex.Store({
       context.dispatch('recalculateTodoLists')
     },
     recalculateTodoLists (context) {
+      context.commit('setActiveTodoListAllItems')
+      context.commit('setActiveTodoListActiveItems')
+      context.commit('setActiveTodoListCompletedItems')
+      context.commit('setFilteredTodos')
+      context.commit(mutNames.SAVE_STATE)
+    },
+    recalculateTodoListsWithoutSavingState (context) {
       context.commit('setActiveTodoListAllItems')
       context.commit('setActiveTodoListActiveItems')
       context.commit('setActiveTodoListCompletedItems')
@@ -267,7 +269,7 @@ export const store = new Vuex.Store({
         context.dispatch('deleteTodoItemIfSaved', todo)
       })
     },
-    deleteTodoItemIfSaved(context, todo) {
+    deleteTodoItemIfSaved (context, todo) {
       if (todo) {
         // Only make delete call to backend if it has been saved at some point
         if (!todo.isNew) {
@@ -279,20 +281,13 @@ export const store = new Vuex.Store({
       } else {
         console.log('todo item', todoItem.title,'not found!')
       }
+    },
+    setVisibility (context, visibility) {
+      context.commit('setVisibility', visibility)
+      context.dispatch('recalculateTodoLists')
     }
   },
   mutations: {
-    updateTodoLists (state, todoLists) {
-      // todoLists = _.map(todoLists, (todoList) => {
-      //   return {
-      //     id: todoList.id,
-      //     name: todoList.name,
-      //     todo: todoList.todos,
-      //     isLoaded: false
-      //   }
-      // })
-      // state.todoLists = todoLists
-    },
     updateTodoListNames (state, todoListNames) {
       state.todoListNames = todoListNames
       var listNames = []
@@ -452,6 +447,9 @@ export const store = new Vuex.Store({
     },
     setUpdatedFlag (state, todo) {
       todo.isUpdated = true
+    },
+    SAVE_STATE (state) {
+      //plugin is recording state
     }
   },
   getters: {

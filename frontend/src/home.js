@@ -14,7 +14,6 @@ export default {
     ...mapGetters([
       'todoLists',
       'todoItems',
-      'activeTodoList',
       'todoItems',
       'uid',
       'remaining'
@@ -29,7 +28,8 @@ export default {
       'todoListNames',
       'listNames',
       'editedTodo',
-      'todoEditCache'
+      'todoEditCache',
+      'activeTodoList'
     ]),
     newTodo: {
         get(){ return this.$store.getters.newTodo; },
@@ -37,7 +37,10 @@ export default {
     },
     visibility: {
         get(){ return this.$store.getters.visibility; },
-        set( value ){ this.$store.commit('setVisibility', value );}
+        set( value ){
+          console.log(value)
+          this.$store.dispatch('setVisibility', value )
+        }
     },
 
   },
@@ -67,7 +70,8 @@ export default {
       'setAllComplete',
       'removeCompleted',
       'toggleCompleted',
-      'deleteTodoItemIfSaved'
+      'deleteTodoItemIfSaved',
+      'setVisibility',
     ]),
     clearNew() {
       this.newListName = ''
@@ -75,6 +79,12 @@ export default {
     // Required to update autocomplete after loading
     clearLoad() {
       this.$refs.listAutocomplete.inputValue = ''
+    },
+    undoState () {
+      this.undo()
+      this.$store.commit('setActiveTodoList', {})
+      this.$store.commit('setActiveTodoList', this.activeTodoList)
+      this.$store.dispatch('recalculateTodoListsWithoutSavingState')
     },
     isVaildVisibilityFilter(visibility) {
       return visibility === 'all' || visibility === 'active' || visibility === 'completed'
